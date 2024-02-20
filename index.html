@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Client</title>
+	</head>
+	<body>
+		<label for="requestsPerSecond">Requests Per Second (0-100):</label>
+		<input type="number" id="requestsPerSecond" min="0" max="100" required />
+		<button id="startBtn" onclick="startFetching()">Start</button>
+		<button id="clearBtn" onclick="clearResponses()" disabled>
+			Clear Responses
+		</button>
+		<ul id="responseList"></ul>
+
+		<script>
+			async function startFetching() {
+				const requestsPerSecond = parseInt(
+					document.getElementById("requestsPerSecond").value
+				);
+				document.getElementById("startBtn").disabled = true;
+
+				let requestsCounter = 0;
+
+				const makeRequest = async () => {
+					requestsCounter++;
+					const index = requestsCounter;
+					fetch(`http://localhost:3000/api?index=${index}`)
+						.then((response) => {
+							if (!response.ok) {
+								throw new Error("Network response was not ok");
+							}
+							return response.text();
+						})
+						.then((data) => {
+							const responseList = document.getElementById("responseList");
+							const li = document.createElement("li");
+							li.textContent = `Response ${index}: ${data}`;
+							responseList.appendChild(li);
+						})
+						.catch((error) => console.error("Error:", error));
+				};
+
+				const interval = setInterval(makeRequest, 1000 / requestsPerSecond);
+				setTimeout(() => {
+					clearInterval(interval);
+					document.getElementById("startBtn").disabled = false;
+					document.getElementById("clearBtn").disabled = false;
+				}, 1000);
+			}
+
+			function clearResponses() {
+				const responseList = document.getElementById("responseList");
+				responseList.innerHTML = "";
+				document.getElementById("clearBtn").disabled = true;
+			}
+		</script>
+	</body>
+</html>
